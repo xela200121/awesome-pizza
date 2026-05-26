@@ -182,9 +182,7 @@ class OrderServiceImplTest {
     void getOrderByCode_shouldRejectUnknownCode() {
         when(orderRepository.findByCode(orderCode)).thenReturn(Optional.empty());
 
-        assertThrows(OrderNotFoundException.class, () -> {
-            orderService.getOrderByCode(orderCode);
-        });
+        assertThrows(OrderNotFoundException.class, () -> orderService.getOrderByCode(orderCode));
 
         verify(orderRepository).findByCode(orderCode);
 
@@ -232,9 +230,7 @@ class OrderServiceImplTest {
         when(orderRepository.findFirstByStatusOrderByCreatedAtAsc(OrderStatusEnum.RECEIVED))
                 .thenReturn(Optional.empty());
 
-        assertThrows(OrderNotFoundException.class, () -> {
-            orderService.takeNextOrder();
-        });
+        assertThrows(OrderNotFoundException.class, () -> orderService.takeNextOrder());
 
         verify(orderRepository).existsByStatus(OrderStatusEnum.IN_PROGRESS);
         verify(orderRepository).findFirstByStatusOrderByCreatedAtAsc(OrderStatusEnum.RECEIVED);
@@ -246,9 +242,7 @@ class OrderServiceImplTest {
         when(orderRepository.existsByStatus(OrderStatusEnum.IN_PROGRESS))
                 .thenReturn(true);
 
-        assertThrows(OrderStatusException.class, () -> {
-            orderService.takeNextOrder();
-        });
+        assertThrows(OrderStatusException.class, () -> orderService.takeNextOrder());
 
         verify(orderRepository).existsByStatus(OrderStatusEnum.IN_PROGRESS);
         verify(orderRepository, never())
@@ -288,9 +282,7 @@ class OrderServiceImplTest {
     void completeOrder_shouldRejectUnknownOrder() {
         when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
 
-        assertThrows(OrderNotFoundException.class, () -> {
-            orderService.completeOrder(orderId);
-        });
+        assertThrows(OrderNotFoundException.class, () -> orderService.completeOrder(orderId));
 
         verify(orderRepository).findById(orderId);
         verify(orderRepository, never()).save(any(Order.class));
@@ -303,9 +295,7 @@ class OrderServiceImplTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
-        assertThrows(OrderStatusException.class, () -> {
-            orderService.completeOrder(orderId);
-        });
+        assertThrows(OrderStatusException.class, () -> orderService.completeOrder(orderId));
 
         verify(orderRepository).findById(orderId);
         verify(orderRepository, never()).save(any(Order.class));
