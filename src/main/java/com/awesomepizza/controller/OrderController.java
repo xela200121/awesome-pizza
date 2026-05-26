@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import com.awesomepizza.dto.CreateOrderRequest;
 import com.awesomepizza.dto.OrderResponse;
 import com.awesomepizza.service.OrderService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,7 @@ public class OrderController {
             @ApiResponse(responseCode = "201", description = "Order created"),
             @ApiResponse(responseCode = "400", description = "Invalid or malformed order request")
     })
+    @Tag(name = "User")
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest request) {
         OrderResponse response = orderService.createOrder(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -45,6 +47,7 @@ public class OrderController {
             @ApiResponse(responseCode = "200", description = "Order found"),
             @ApiResponse(responseCode = "404", description = "Order not found")
     })
+    @Tag(name = "User")
     public ResponseEntity<OrderResponse> getOrderByCode(
             @Parameter(description = "Public order code", example = "AW-12345678")
             @PathVariable String code) {
@@ -60,6 +63,7 @@ public class OrderController {
             @ApiResponse(responseCode = "404", description = "No order available found"),
             @ApiResponse(responseCode = "409", description = "Another order is already in progress")
     })
+    @Tag(name = "Pizza Chef")
     public ResponseEntity<OrderResponse> takeNextOrder() {
         OrderResponse response = orderService.takeNextOrder();
         return ResponseEntity.ok(response);
@@ -72,6 +76,7 @@ public class OrderController {
             @ApiResponse(responseCode = "404", description = "Order not found"),
             @ApiResponse(responseCode = "409", description = "Order is not in progress")
     })
+    @Tag(name = "Pizza Chef")
     public ResponseEntity<OrderResponse> completeOrder(
             @Parameter(description = "Order id")
             @PathVariable Long id) {
