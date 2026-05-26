@@ -18,6 +18,10 @@ import java.util.UUID;
 @Service
 public class OrderServiceImpl implements OrderService {
 
+    private static final String ORDER_CODE_PREFIX = "AW-";
+    private static final int ORDER_CODE_RANDOM_LENGTH = 8;
+    private static final String ORDER_NOT_FOUND_MESSAGE = "Order not found";
+
     private final OrderRepository orderRepository;
 
     public OrderServiceImpl(OrderRepository orderRepository) {
@@ -35,15 +39,15 @@ public class OrderServiceImpl implements OrderService {
                     order.addItem(item);
                 });
 
-        return toResponse(orderRepository.save(order));
+        return toOrderResponse(orderRepository.save(order));
     }
 
     @Override
     @Transactional(readOnly = true)
     public OrderResponse getOrderByCode(String orderCode) {
         Order order = orderRepository.findByCode(orderCode)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found"));
-        return toResponse(order);
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND_MESSAGE));
+        return toOrderResponse(order);
     }
 
     @Override
@@ -57,7 +61,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new OrderNotFoundException("No order found in status RECEIVED"));
         nextOrder.markAsInProgress();
         Order orderInProgress = orderRepository.save(nextOrder);
-        return toResponse(orderInProgress);
+        return toOrderResponse(orderInProgress);
     }
 
     @Override
@@ -74,10 +78,10 @@ public class OrderServiceImpl implements OrderService {
 
         Order completedOrder = orderRepository.save(order);
 
-        return toResponse(completedOrder);
+        return toOrderResponse(completedOrder);
     }
 
-    private OrderResponse toResponse(Order order) {
+    private OrderResponse toOrderResponse(Order order) {
         OrderResponse response = new OrderResponse();
         response.setId(order.getId());
         response.setCode(order.getCode());
@@ -88,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderItemResponse> itemResponses = order.getItems()
                 .stream()
-                .map(this::toItemResponse)
+                .map(this::toOrderItemResponse)
                 .toList();
 
         response.setItems(itemResponses);
@@ -96,7 +100,7 @@ public class OrderServiceImpl implements OrderService {
         return response;
     }
 
-    private OrderItemResponse toItemResponse(OrderItem item) {
+    private OrderItemResponse toOrderItemResponse(OrderItem item) {
         OrderItemResponse response = new OrderItemResponse();
         response.setId(item.getId());
         response.setPizzaName(item.getPizzaName());
@@ -106,9 +110,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private String generateOrderCode() {
-        return "AW-" + UUID.randomUUID()
+        return ORDER_CODE_PREFIX + UUID.randomUUID()
                 .toString()
-                .substring(0, 8)
+                .substring(0, ORDER_CODE_RANDOM_LENGTH)
                 .toUpperCase();
     }
 }

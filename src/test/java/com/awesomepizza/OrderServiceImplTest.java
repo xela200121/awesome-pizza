@@ -22,9 +22,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceImplTest {
@@ -33,7 +39,7 @@ class OrderServiceImplTest {
     private OrderRepository orderRepository;
 
     @InjectMocks
-    private OrderServiceImpl orderServiceImplBc;
+    private OrderServiceImpl orderService;
 
     private CreateOrderItemRequest createOrderItemRequest;
     private CreateOrderRequest createOrderRequest;
@@ -74,7 +80,7 @@ class OrderServiceImplTest {
 
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
 
-        OrderResponse response = orderServiceImplBc.createOrder(createOrderRequest);
+        OrderResponse response = orderService.createOrder(createOrderRequest);
 
         assertNotNull(response);
         assertEquals(orderId, response.getId());
@@ -91,7 +97,7 @@ class OrderServiceImplTest {
         when(orderRepository.save(any(Order.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        OrderResponse response = orderServiceImplBc.createOrder(createOrderRequest);
+        OrderResponse response = orderService.createOrder(createOrderRequest);
 
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         verify(orderRepository).save(orderCaptor.capture());
@@ -136,7 +142,7 @@ class OrderServiceImplTest {
 
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
 
-        OrderResponse response = orderServiceImplBc.createOrder(createOrderRequest);
+        OrderResponse response = orderService.createOrder(createOrderRequest);
 
         assertNotNull(response);
         assertEquals(2, response.getItems().size());
@@ -158,7 +164,7 @@ class OrderServiceImplTest {
 
         when(orderRepository.findByCode(orderCode)).thenReturn(Optional.of(order));
 
-        OrderResponse response = orderServiceImplBc.getOrderByCode(orderCode);
+        OrderResponse response = orderService.getOrderByCode(orderCode);
 
         assertNotNull(response);
         assertEquals(orderCode, response.getCode());
@@ -178,7 +184,7 @@ class OrderServiceImplTest {
         when(orderRepository.findByCode(orderCode)).thenReturn(Optional.empty());
 
         assertThrows(OrderNotFoundException.class, () -> {
-            orderServiceImplBc.getOrderByCode(orderCode);
+            orderService.getOrderByCode(orderCode);
         });
 
         verify(orderRepository).findByCode(orderCode);
@@ -200,7 +206,7 @@ class OrderServiceImplTest {
         when(orderRepository.save(oldestOrder))
                 .thenReturn(oldestOrder);
 
-        OrderResponse response = orderServiceImplBc.takeNextOrder();
+        OrderResponse response = orderService.takeNextOrder();
 
         assertNotNull(response);
 
@@ -230,7 +236,7 @@ class OrderServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(OrderNotFoundException.class, () -> {
-            orderServiceImplBc.takeNextOrder();
+            orderService.takeNextOrder();
         });
 
         verify(orderRepository).existsByStatus(OrderStatusEnum.IN_PROGRESS);
@@ -245,7 +251,7 @@ class OrderServiceImplTest {
                 .thenReturn(true);
 
         assertThrows(OrderStatusException.class, () -> {
-            orderServiceImplBc.takeNextOrder();
+            orderService.takeNextOrder();
         });
 
         verify(orderRepository).existsByStatus(OrderStatusEnum.IN_PROGRESS);
@@ -266,7 +272,7 @@ class OrderServiceImplTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(orderRepository.save(order)).thenReturn(order);
 
-        OrderResponse response = orderServiceImplBc.completeOrder(orderId);
+        OrderResponse response = orderService.completeOrder(orderId);
 
         assertNotNull(response);
 
@@ -293,7 +299,7 @@ class OrderServiceImplTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
 
         assertThrows(OrderNotFoundException.class, () -> {
-            orderServiceImplBc.completeOrder(orderId);
+            orderService.completeOrder(orderId);
         });
 
         verify(orderRepository).findById(orderId);
@@ -311,7 +317,7 @@ class OrderServiceImplTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
         assertThrows(OrderStatusException.class, () -> {
-            orderServiceImplBc.completeOrder(orderId);
+            orderService.completeOrder(orderId);
         });
 
         verify(orderRepository).findById(orderId);
