@@ -45,9 +45,15 @@ class OrderServiceImplTest {
     private CreateOrderRequest createOrderRequest;
     private Order order;
     private OrderItem orderItem;
+    private long orderId;
+    String orderCode;
+
 
     @BeforeEach
     void setUp() {
+        orderId = 1L;
+        orderCode = "AW-PIZZA-001";
+
         createOrderItemRequest = new CreateOrderItemRequest();
         createOrderItemRequest.setPizzaName("Margherita");
         createOrderItemRequest.setQuantity(2);
@@ -76,8 +82,6 @@ class OrderServiceImplTest {
     @Test
     void createOrder_shouldCreateOrderWithReceivedStatus() {
         Order savedOrder = order;
-        Long orderId = 1L;
-
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
 
         OrderResponse response = orderService.createOrder(createOrderRequest);
@@ -93,7 +97,6 @@ class OrderServiceImplTest {
 
     @Test
     void createOrder_shouldSaveExpectedEntity() {
-
         when(orderRepository.save(any(Order.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -158,8 +161,6 @@ class OrderServiceImplTest {
 
     @Test
     void getOrderByCode_shouldReturnOrderDetails() {
-        String orderCode = "AW-PIZZA-001";
-
         order.setStatus(OrderStatusEnum.IN_PROGRESS);
 
         when(orderRepository.findByCode(orderCode)).thenReturn(Optional.of(order));
@@ -179,8 +180,6 @@ class OrderServiceImplTest {
 
     @Test
     void getOrderByCode_shouldRejectUnknownCode() {
-        String orderCode = "AW-PIZZA-999";
-
         when(orderRepository.findByCode(orderCode)).thenReturn(Optional.empty());
 
         assertThrows(OrderNotFoundException.class, () -> {
@@ -194,7 +193,6 @@ class OrderServiceImplTest {
 
     @Test
     void takeNextOrder_shouldMoveOldestReceivedOrderToInProgress() {
-
         Order oldestOrder = order;
 
         when(orderRepository.existsByStatus(OrderStatusEnum.IN_PROGRESS))
@@ -228,7 +226,6 @@ class OrderServiceImplTest {
 
     @Test
     void takeNextOrder_shouldRejectWhenNoReceivedOrdersExist() {
-
         when(orderRepository.existsByStatus(OrderStatusEnum.IN_PROGRESS))
                 .thenReturn(false);
 
@@ -246,7 +243,6 @@ class OrderServiceImplTest {
 
     @Test
     void takeNextOrder_shouldRejectWhenOrderAlreadyInProgress() {
-
         when(orderRepository.existsByStatus(OrderStatusEnum.IN_PROGRESS))
                 .thenReturn(true);
 
@@ -262,9 +258,6 @@ class OrderServiceImplTest {
 
     @Test
     void completeOrder_shouldMoveOrderToCompleted() {
-
-        Long orderId = 1L;
-
         Order order = this.order;
         order.setStatus(OrderStatusEnum.IN_PROGRESS);
         LocalDateTime previousUpdatedAt = order.getUpdatedAt();
@@ -293,9 +286,6 @@ class OrderServiceImplTest {
 
     @Test
     void completeOrder_shouldRejectUnknownOrder() {
-
-        Long orderId = 999L;
-
         when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
 
         assertThrows(OrderNotFoundException.class, () -> {
@@ -308,9 +298,6 @@ class OrderServiceImplTest {
 
     @Test
     void completeOrder_shouldRejectOrderNotInProgress() {
-
-        Long orderId = 1L;
-
         Order order = this.order;
         order.setStatus(OrderStatusEnum.RECEIVED);
 
